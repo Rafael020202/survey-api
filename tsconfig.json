@@ -4,6 +4,7 @@
     "esModuleInterop": true,
     "allowJs": true,
     "target": "es2022",
-    "module": "commonjs"
+    "module": "commonjs",
+    "strictNullChecks": true
   }
 }
