@@ -1,0 +1,7 @@
+{
+  "name": "survey",
+  "version": "1.0.0",
+  "main": "index.js",
+  "author": "Rafael Luiz <luizrafael391@gmail.com>",
+  "license": "MIT"
+}
