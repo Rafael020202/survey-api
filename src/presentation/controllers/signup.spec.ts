@@ -100,4 +100,28 @@ describe('SignUp Controller', () => {
     expect(httResponse.statusCode).toBe(400);
     expect(httResponse.body).toEqual(new InvalidParamError('email'));
   });
+
+  test('Should return 500 if a server error occurred', () => {
+    class EmailValidatorStub implements EmailValidator {
+      isValid (email: string): boolean {
+        throw Error();
+      }
+    }
+
+    const emailValidatorStub = new EmailValidatorStub();
+    const sut = new SignUpController(emailValidatorStub);
+    const httpRequest = {
+      body: {
+        name: 'any_name',
+        email: 'some_email@mail.com',
+        password: 'passworld',
+        password_confirmation: 'passworld'
+      }
+    };
+
+    const httResponse = sut.handle(httpRequest);
+
+    expect(httResponse.statusCode).toBe(500);
+    expect(httResponse.body).toEqual(new Error('server-error'));
+  });
 });
