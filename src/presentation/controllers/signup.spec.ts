@@ -126,4 +126,21 @@ describe('SignUp Controller', () => {
     expect(httResponse.statusCode).toBe(500);
     expect(httResponse.body).toEqual(new ServerError());
   });
+
+  test('Should return 400 if password is different from password_confirmation', () => {
+    const { sut } = makeSut();
+    const httpRequest = {
+      body: {
+        name: 'any_name',
+        email: 'somemail@mail.com',
+        password: 'passworld',
+        password_confirmation: 'passworldAround'
+      }
+    };
+
+    const httpResponse = sut.handle(httpRequest);
+
+    expect(httpResponse.statusCode).toBe(400);
+    expect(httpResponse.body).toEqual(new InvalidParamError('password_confirmation'));
+  });
 });
