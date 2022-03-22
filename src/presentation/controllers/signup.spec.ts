@@ -1,10 +1,32 @@
 import { SignUpController } from '../controllers/signup';
 import { MissingParamError, InvalidParamError, ServerError } from '../errors';
 import { EmailValidator } from '../protocols';
+import { AddAccount, AddAccountModel } from '../../domain/useCases/add-account';
+import { AccountModel } from '../../domain/models/account';
 
 interface Sut {
   sut: SignUpController
   emailValidatorStub: EmailValidator
+  addAccountStub: AddAccount
+};
+
+const makeAddAccountStub = (): AddAccount => {
+  class AddAccountStub implements AddAccount {
+    add (account: AddAccountModel): AccountModel {
+      const fakeAccount = account;
+
+      return {
+        id: '1',
+        created_at: new Date(),
+        updated_at: new Date(),
+        ...fakeAccount
+      };
+    }
+  }
+
+  const addAccountStub = new AddAccountStub();
+
+  return addAccountStub;
 };
 
 const makeEmailValidatorStub = (): EmailValidator => {
@@ -21,9 +43,10 @@ const makeEmailValidatorStub = (): EmailValidator => {
 
 const makeSut = (): Sut => {
   const emailValidatorStub = makeEmailValidatorStub();
-  const sut = new SignUpController(emailValidatorStub);
+  const addAccountStub = makeAddAccountStub();
+  const sut = new SignUpController(emailValidatorStub, addAccountStub);
 
-  return { sut, emailValidatorStub };
+  return { sut, emailValidatorStub, addAccountStub };
 };
 
 describe('SignUp Controller', () => {
@@ -142,5 +165,22 @@ describe('SignUp Controller', () => {
 
     expect(httpResponse.statusCode).toBe(400);
     expect(httpResponse.body).toEqual(new InvalidParamError('password_confirmation'));
+  });
+
+  test('Should call addAccount with correct data', () => {
+    const { sut, addAccountStub } = makeSut();
+    const addACount = jest.spyOn(addAccountStub, 'add');
+    const httpRequest = {
+      body: {
+        name: 'any_name',
+        email: 'somemail@mail.com',
+        password: 'passworld',
+        password_confirmation: 'passworld'
+      }
+    };
+
+    sut.handle(httpRequest);
+
+    expect(addACount).toBeCalledWith(httpRequest.body);
   });
 });
