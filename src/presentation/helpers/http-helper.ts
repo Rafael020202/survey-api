@@ -8,10 +8,10 @@ export const badRequest = (error: Error): HttpResponse => {
   };
 };
 
-export const success = (message: string): HttpResponse => {
+export const success = (data: any): HttpResponse => {
   return {
     statusCode: 200,
-    body: message
+    body: data
   };
 };
 
