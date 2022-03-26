@@ -95,4 +95,19 @@ describe('DbAddAccount usecase', () => {
     await dbAddAccount.add(accountData);
     expect(add).toHaveBeenCalledWith(accountData);
   });
+
+  test('Should throw if addAccountRepository throws', async () => {
+    const { dbAddAccount, addAccountRepositoryStub } = makeSut();
+
+    jest.spyOn(addAccountRepositoryStub, 'add').mockReturnValueOnce(new Promise((resolve, reject) => reject(new Error())));
+
+    const accountData = {
+      name: 'valid_name',
+      email: 'valid_email',
+      password: 'valid_password'
+    };
+
+    const account = dbAddAccount.add(accountData);
+    await expect(account).rejects.toThrow();
+  });
 });
