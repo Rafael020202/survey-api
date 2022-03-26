@@ -42,7 +42,7 @@ describe('DbAddAccount usecase', () => {
     expect(encrypt).toBeCalledWith(account.password);
   });
 
-  test('Should ', async () => {
+  test('Should throw if encypter throws', async () => {
     const { encrypter, dbAddAccount } = makeSut();
 
     jest.spyOn(encrypter, 'encrypt').mockReturnValueOnce(new Promise((resolve, reject) => reject(new Error())));
