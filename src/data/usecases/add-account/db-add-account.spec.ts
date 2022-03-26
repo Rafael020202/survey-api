@@ -1,9 +1,31 @@
-import { Encrypter } from './db-add-account-protocols';
+import { Encrypter, AddAccountRepository, AddAccountModel, AccountModel } from './db-add-account-protocols';
 import { DbAddAccount } from './db-add-account';
 
 interface Sut {
   encrypter: Encrypter
   dbAddAccount: DbAddAccount
+  addAccountRepositoryStub: AddAccountRepository
+};
+
+const makeAddAccountRepository = (): AddAccountRepository => {
+  class AddAccountRepositoryStub implements AddAccountRepository {
+    async add (account: AddAccountModel): Promise<AccountModel> {
+      const fakeAccount = {
+        id: 'unique_id',
+        name: 'valid_name',
+        email: 'valid_email',
+        password: 'hashed_password',
+        created_at: new Date(),
+        updated_at: new Date()
+      };
+
+      return await new Promise((resolve) => resolve(fakeAccount));
+    }
+  }
+
+  const addAccountRepositoryStub = new AddAccountRepositoryStub();
+
+  return addAccountRepositoryStub;
 };
 
 const makeEncrypterStub = (): Encrypter => {
@@ -20,11 +42,13 @@ const makeEncrypterStub = (): Encrypter => {
 
 const makeSut = (): Sut => {
   const encrypter = makeEncrypterStub();
-  const dbAddAccount = new DbAddAccount(encrypter);
+  const addAccountRepositoryStub = makeAddAccountRepository();
+  const dbAddAccount = new DbAddAccount(encrypter, addAccountRepositoryStub);
 
   return {
     encrypter,
-    dbAddAccount
+    dbAddAccount,
+    addAccountRepositoryStub
   };
 };
 
@@ -55,5 +79,20 @@ describe('DbAddAccount usecase', () => {
 
     const account = dbAddAccount.add(accountData);
     await expect(account).rejects.toThrow();
+  });
+
+  test('Should call AddAccountRepository with correct data', async () => {
+    const { dbAddAccount, addAccountRepositoryStub } = makeSut();
+
+    const add = jest.spyOn(addAccountRepositoryStub, 'add');
+
+    const accountData = {
+      name: 'valid_name',
+      email: 'valid_email',
+      password: 'encrypted_password'
+    };
+
+    await dbAddAccount.add(accountData);
+    expect(add).toHaveBeenCalledWith(accountData);
   });
 });
